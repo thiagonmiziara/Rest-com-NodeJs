@@ -17,4 +17,13 @@ module.exports = app => {
 
         Atendimento.adiciona(atendimento, res);
     });
+
+    //criando um patch
+    app.patch('/atendimentos/:id', (req, res) => {
+        const id = parseInt(req.params.id);
+        const valores = req.body;
+
+        Atendimento.altera(id, valores, res);
+
+    });
 }
