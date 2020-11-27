@@ -293,4 +293,149 @@ class Atendimento {
 module.exports = new Atendimento;
 
 
+após feito isso temos que melhorar as mensagens de erro fazendo validações e vamos fazer isso na class Atendimento que vai ficar com o seguinte código:
+
+const moment = require('moment');
+const conexao = require('../infraestrutura/conexao');
+
+class Atendimento {
+
+    adiciona(atendimento, res) {
+        const dataCriacao = moment().format('YYYY-MM-DD HH:MM:SS');
+        const data = moment(atendimento.data, 'DD/MM/YYYY').format('YYYY-MM-DD HH:MM:SS');
+
+        const dataEhValida = moment(data).isSameOrAfter(dataCriacao);
+        const clienteEhvalido = atendimento.cliente.length >= 5;
+
+        const validacoes = [{
+                nome: 'data',
+                valido: dataEhValida,
+                mensagem: 'Data deve ser maior ou igual a data atual'
+            },
+            {
+                nome: 'cliente',
+                valido: clienteEhvalido,
+                mensagem: 'Cliente deve ter pelo menos 5 caracteres'
+            }
+        ]
+
+        const erros = validacoes.filter(campo => !campo.valido);
+        const existemErros = erros.length;
+
+        if (existemErros) {
+            res.status(400).json(erros)
+        } else {
+
+            const atendimentoDatado =22/10/2018 {...atendimento, dataCriacao, data }
+            const sql = 'INSERT INTO Atendimentos SET ?';
+
+            conexao.query(sql, atendimentoDatado, (erro, resultados) => {
+                if (erro) {
+                    res.status(400).json(erro);
+                } else {
+                    res.status(201).json(resultados);
+                }
+            });
+        }
+    }
+}
+module.exports = new Atendimento;
+
+
+adicionando mais 2 GEt na Api para isso adicionamos os codigos no atendimento.js/controllers :
+
+const Atendimento = require('../models/atendimentos');
+
+module.exports = app => {
+    // crianto um get
+    app.get('/atendimentos', (req, res) => {
+        Atendimento.lista(res);
+    });
+
+    app.get('/atendimentos/:id', (req, res) => {
+        const id = parseInt(req.params.id);
+        Atendimento.buscaPorId(id, res);
+
+    });
+    // criando um post
+    app.post('/atendimentos', (req, res) => {
+        const atendimento = req.body;
+
+        Atendimento.adiciona(atendimento, res);
+    });
+}
+
+e adincionando os codigos na class Atendimentos.js/models
+
+const moment = require('moment');
+const conexao = require('../infraestrutura/conexao');
+
+class Atendimento {
+
+    adiciona(atendimento, res) {
+        const dataCriacao = moment().format('YYYY-MM-DD HH:mm:ss');
+        const data = moment(atendimento.data, 'DD/MM/YYYY').format('YYYY-MM-DD HH:mm:ss');
+
+        const dataEhValida = moment(data).isSameOrAfter(dataCriacao);
+        const clienteEhvalido = atendimento.cliente.length >= 5;
+
+        const validacoes = [{
+                nome: 'data',
+                valido: dataEhValida,
+                mensagem: 'Data deve ser maior ou igual a data atual'
+            },
+            {
+                nome: 'cliente',
+                valido: clienteEhvalido,
+                mensagem: 'Cliente deve ter pelo menos 5 caracteres'
+            }
+        ]
+
+        const erros = validacoes.filter(campo => !campo.valido);
+        const existemErros = erros.length;
+
+        if (existemErros) {
+            res.status(400).json(erros)
+        } else {
+
+            const atendimentoDatado = {...atendimento, dataCriacao, data }
+            const sql = 'INSERT INTO Atendimentos SET ?';
+
+            conexao.query(sql, atendimentoDatado, (erro, resultados) => {
+                if (erro) {
+                    res.status(400).json(erro);
+                } else {
+                    res.status(201).json(resultados);
+                }
+            });
+        }
+    }
+
+    lista(res) {
+        const sql = 'SELECT * FROM Atendimentos';
+
+        conexao.query(sql, (erro, resultados) => {
+            if (erro) {
+                res.status(400).json(erro);
+            } else {
+                res.status(200).json(resultados);
+            }
+
+        });
+    }
+
+    buscaPorId(id, res) {
+        const sql = `SELECT * FROM Atendimentos WHERE id=${id}`
+
+        conexao.query(sql, (erro, resultados) => {
+            const atendimento = resultados[0];
+            if (erro) {
+                res.status(400).json(erro);
+            } else {
+                res.status(200).json(atendimento);
+            }
+        });
+    }
+}
+module.exports = new Atendimento;
 
