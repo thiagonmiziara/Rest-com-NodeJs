@@ -8,6 +8,7 @@ module.exports = app => {
 
     app.get('/atendimentos/:id', (req, res) => {
         const id = parseInt(req.params.id);
+
         Atendimento.buscaPorId(id, res);
 
     });
@@ -26,4 +27,12 @@ module.exports = app => {
         Atendimento.altera(id, valores, res);
 
     });
+
+    //criando Delete
+    app.delete('/atendimentos/:id', (req, res) => {
+        const id = parseInt(req.params.id);
+
+        Atendimento.deleta(id, res);
+    });
+
 }
